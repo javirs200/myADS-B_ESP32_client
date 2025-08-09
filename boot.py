@@ -1,7 +1,6 @@
 import network
-import uasyncio
-
-from machine import SoftI2C,ADC,Pin
+from uasyncio import sleep, get_event_loop
+from machine import SoftI2C,Pin
 
 from lcd.I2C_LCD import I2cLcd
 from animations.ariplaneframes import airplane_frames, runway_frames
@@ -14,23 +13,24 @@ led = Pin(2,Pin.OUT) # onboard led
 led.value(0)
 
 def flash(speed):
+    """as flash contains sleep , must be awaited"""
     led.value(1)
-    uasyncio.sleep(speed)
+    sleep(speed)
     led.value(0)
-    uasyncio.sleep(speed)
+    sleep(speed)
 
 async def apiManager(api_url,data):
     while True:
         try:
             print("Connecting to API...")
             # Simulate API connection and data retrieval
-            await uasyncio.sleep(2)  # Simulate network delay
+            await sleep(2)  # Simulate network delay
             
             print("Connected to API")
             # Simulate data retrieval
             data['temperature'] = 25.0  # Example data
             
-            await uasyncio.sleep(0.01)
+            await sleep(0.1)
         except Exception as e:
             print("Error connecting to API:", e)
 
@@ -48,7 +48,7 @@ async def screenManager(data):
         print("Custom character loaded:", i + len(airplane_frames))
     
     print("Screen initialized")
-    await uasyncio.sleep(1)
+    await sleep(1)
 
     while True:
         try:
@@ -58,7 +58,7 @@ async def screenManager(data):
             screen.move_to(0, 1)
             screen.putstr("Waiting for data")
 
-            flash(0.5)
+            await flash(0.5)
 
             # Display airplane animation
             screen.clear()
@@ -75,9 +75,9 @@ async def screenManager(data):
             for i in range(len(airplane_frames)):
                 screen.move_to(0, 0)
                 screen.putchar(chr(i))  # Display the current frame
-                await uasyncio.sleep(0.5)  # Delay between frames
+                await sleep(0.5)  # Delay between frames
 
-            await uasyncio.sleep(1)
+            await sleep(1)
 
             if data:
                 screen.clear()
@@ -87,7 +87,7 @@ async def screenManager(data):
                 screen.putstr(str(data['temperature']) + " C")
                 flash(0.5)
                                 
-            await uasyncio.sleep(0.5) # Update every 0.5 seconds
+            await sleep(0.5) # Update every 0.5 seconds
         except Exception as e:
             print("Error updating screen:", e)
 
@@ -104,7 +104,7 @@ def main():
     data = {}
 
     try:
-        loop = uasyncio.get_event_loop()
+        loop = get_event_loop()
         loop.create_task(apiManager(api_url,data))
         loop.create_task(screenManager(data))
         loop.run_forever()

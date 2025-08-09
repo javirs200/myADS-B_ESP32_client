@@ -21,7 +21,8 @@ class myNetwork:
             loadedNets.append(n['ssid'])
 
         print("networks loaded ",loadedNets)
-
+        
+        
         self.sta_if = network.WLAN(network.STA_IF) # wifi station mode
         self.sta_if.active(True) # wifi on
         
